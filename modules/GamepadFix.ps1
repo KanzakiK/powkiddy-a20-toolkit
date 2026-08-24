@@ -20,16 +20,12 @@ $origFile = Join-Path $filesDir "Vendor_0001_Product_0001.kl.orig"
 $daemonFile = Join-Path $filesDir "a20_gamepad_daemon"
 $shFile = Join-Path $filesDir "a20_gamepad.sh"
 $rcFile = Join-Path $filesDir "a20_gamepad.rc"
-$restartShFile = Join-Path $filesDir "a20_gamepad_restart.sh"
-$restartRcFile = Join-Path $filesDir "a20_gamepad_restart.rc"
 
 # 设备端目标路径（/vendor 直写持久）
 $VendorKl      = "/vendor/usr/keylayout/Vendor_0001_Product_0001.kl"
 $VendorDaemon  = "/vendor/bin/a20_gamepad_daemon"
 $VendorSh      = "/vendor/bin/a20_gamepad.sh"
 $VendorRc      = "/vendor/etc/init/a20_gamepad.rc"
-$VendorRestartSh = "/vendor/bin/a20_gamepad_restart.sh"
-$VendorRestartRc = "/vendor/etc/init/a20_gamepad_restart.rc"
 
 if ($Action -eq "install") {
     Write-Title "标准手柄修复 - 安装"
@@ -54,7 +50,7 @@ function Do-RemountVendorRo {
 
 if ($Action -eq "install") {
     # ===== 安装 =====
-    foreach ($f in @($klFile, $daemonFile, $shFile, $rcFile, $restartShFile, $restartRcFile)) {
+    foreach ($f in @($klFile, $daemonFile, $shFile, $rcFile)) {
         if (-not (Test-Path $f)) {
             Write-Err "缺少文件: $f"
             exit 1
@@ -68,8 +64,6 @@ if ($Action -eq "install") {
     Invoke-Adb @("push", $daemonFile, "/data/local/tmp/a20_gamepad_daemon") 2>&1 | Out-Null
     Invoke-Adb @("push", $shFile, "/data/local/tmp/a20_gamepad.sh") 2>&1 | Out-Null
     Invoke-Adb @("push", $rcFile, "/data/local/tmp/a20_gamepad.rc") 2>&1 | Out-Null
-    Invoke-Adb @("push", $restartShFile, "/data/local/tmp/a20_gamepad_restart.sh") 2>&1 | Out-Null
-    Invoke-Adb @("push", $restartRcFile, "/data/local/tmp/a20_gamepad_restart.rc") 2>&1 | Out-Null
 
     Do-RemountVendor
 
@@ -122,19 +116,17 @@ if ($Action -eq "install") {
     Invoke-AdbShell "cp /data/local/tmp/a20_gamepad_daemon $VendorDaemon" | Out-Null
     Invoke-AdbShell "cp /data/local/tmp/a20_gamepad.sh $VendorSh" | Out-Null
     Invoke-AdbShell "cp /data/local/tmp/a20_gamepad.rc $VendorRc" | Out-Null
-    Invoke-AdbShell "cp /data/local/tmp/a20_gamepad_restart.sh $VendorRestartSh" | Out-Null
-    Invoke-AdbShell "cp /data/local/tmp/a20_gamepad_restart.rc $VendorRestartRc" | Out-Null
-    Invoke-AdbShell "chmod 755 $VendorDaemon $VendorSh $VendorRestartSh" | Out-Null
-    Invoke-AdbShell "chmod 644 $VendorRc $VendorRestartRc" | Out-Null
+    Invoke-AdbShell "chmod 755 $VendorDaemon $VendorSh" | Out-Null
+    Invoke-AdbShell "chmod 644 $VendorRc" | Out-Null
 
     Do-RemountVendorRo
 
     # 清理临时
-    Invoke-AdbShell "rm -f /data/local/tmp/Vendor_0001_Product_0001.kl /data/local/tmp/a20_gamepad_daemon /data/local/tmp/a20_gamepad.sh /data/local/tmp/a20_gamepad.rc /data/local/tmp/a20_gamepad_restart.sh /data/local/tmp/a20_gamepad_restart.rc" | Out-Null
+    Invoke-AdbShell "rm -f /data/local/tmp/Vendor_0001_Product_0001.kl /data/local/tmp/a20_gamepad_daemon /data/local/tmp/a20_gamepad.sh /data/local/tmp/a20_gamepad.rc" | Out-Null
 
     # 验证
     Write-Info "验证安装..."
-    $files = @($VendorKl, $VendorDaemon, $VendorSh, $VendorRc, $VendorRestartSh, $VendorRestartRc)
+    $files = @($VendorKl, $VendorDaemon, $VendorSh, $VendorRc)
     foreach ($p in $files) {
         $v = Invoke-AdbShell "ls -la $p 2>/dev/null"
         if ($v.StdOut -match [regex]::Escape((Split-Path $p -Leaf))) {
@@ -158,12 +150,11 @@ else {
     # ===== 卸载 =====
     Write-Info "停止 a20_gamepad 服务..."
     Invoke-AdbShell "stop a20_gamepad 2>/dev/null" | Out-Null
-    Invoke-AdbShell "stop a20_gamepad_restart 2>/dev/null" | Out-Null
 
     Do-RemountVendor
 
     Write-Info "删除守护进程与 init 服务..."
-    Invoke-AdbShell "rm -f $VendorDaemon $VendorSh $VendorRc $VendorRestartSh $VendorRestartRc" | Out-Null
+    Invoke-AdbShell "rm -f $VendorDaemon $VendorSh $VendorRc" | Out-Null
 
     Write-Info "恢复按键映射备份..."
     $bak = Invoke-AdbShell "ls ${VendorKl}.bak 2>/dev/null"
