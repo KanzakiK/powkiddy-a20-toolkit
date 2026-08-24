@@ -1,0 +1,10 @@
+# A20 手柄修复 - 开机后重启霸王宝盒重新枚举虚拟手柄（oneshot）
+service a20_gamepad_restart /system/bin/sh /vendor/bin/a20_gamepad_restart.sh
+    class late_start
+    user root
+    group root
+    oneshot
+    seclabel u:r:shell:s0
+
+on property:sys.boot_completed=1
+    start a20_gamepad_restart

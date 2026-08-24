@@ -1,0 +1,46 @@
+# A20 Gamepad (vendor 0x0a20 product 0x0001) 混合键码映射
+# 同一设备按前台切换输出不同扫描码，由本 kl 映射为对应 Android keycode
+
+# 摇杆轴映射（恢复左摇杆 AXIS_X/Y；否则被当 GENERIC_1/2 失效）
+axis 0x00 X
+axis 0x01 Y
+
+# 原厂键码（霸王宝盒 com.tigerleap.gamebox 使用，与原厂 kl 一致）
+key 59    L
+key 60    R
+key 61    ENTER
+key 62    B
+key 63    C
+key 64    D
+key 65    X
+key 66    Y
+key 67    Z
+key 28    S
+key 158    BACK
+
+# 标准手柄键码（大奥 / Moonlight / 模拟器使用）
+key 304   BUTTON_A
+key 305   BUTTON_B
+key 307   BUTTON_X
+key 308   BUTTON_Y
+key 310   BUTTON_L1
+key 311   BUTTON_R1
+key 312   BUTTON_L2
+key 313   BUTTON_R2
+key 314   BUTTON_SELECT
+key 315   BUTTON_START
+key 316   BUTTON_MODE
+
+# 方向键（两模式一致）
+key 103   DPAD_UP
+key 108   DPAD_DOWN
+key 105   DPAD_LEFT
+key 106   DPAD_RIGHT
+
+# 系统键（音量/电源/静音，恒透传不过滤）
+key 113   VOLUME_MUTE
+key 114   VOLUME_DOWN
+key 115   VOLUME_UP
+key 104   VOLUME_UP
+key 109   VOLUME_DOWN
+key 116   POWER

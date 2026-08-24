@@ -1,0 +1,6 @@
+service a20_gamepad /system/bin/sh /vendor/bin/a20_gamepad.sh
+    class core
+    user root
+    group root
+    restart_period 5
+    seclabel u:r:shell:s0

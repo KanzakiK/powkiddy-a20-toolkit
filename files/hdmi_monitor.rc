@@ -1,0 +1,9 @@
+service hdmi_monitor /system/bin/sh /vendor/bin/hdmi_monitor.sh
+    class late_start
+    user root
+    group root
+    restart_period 5
+    seclabel u:r:shell:s0
+
+on property:sys.boot_completed=1
+    start hdmi_monitor
