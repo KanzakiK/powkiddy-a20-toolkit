@@ -1,7 +1,0 @@
-修复 PowerShell 5.1 兼容问题: CRC32 计算错误 + 子进程调用判定失效
-
-1. Common.psm1 CRC32: 0xFFFFFFFF/0xEDB88320 十六进制字面量在 PS5.1 溢出为 Int32 负数、
-   -bxor 位运算强转有符号导致 CRC 全错；改为十进制 + Int64 域运算
-   (验证: CRC32('123456789')=0xCBF43926 与标准一致)
-2. Repair-Magisk.ps1: & 调用 .ps1 时 LASTEXITCODE 不更新(残留 adb 退出码)，
-   导致 env 修复成功却被误判失败并跳过 boot 刷写；改用 powershell -File 子进程调用
