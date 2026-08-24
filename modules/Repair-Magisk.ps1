@@ -17,7 +17,9 @@ Write-Log "===== 第一步: 修复 env 分区 =====" -ForegroundColor Yellow
 Write-Host ""
 
 $fixEnvScript = Join-Path $modulesDir "Fix-MagiskEnv.ps1"
-& $fixEnvScript -NoReboot
+# 用子进程方式调用，$LASTEXITCODE 才能正确反映脚本退出码（PS5.1 中 & 调用不更新它）
+$psPath = (Get-Process -Id $PID).Path
+& $psPath -NoProfile -ExecutionPolicy Bypass -File $fixEnvScript -NoReboot
 if ($LASTEXITCODE -ne 0) {
     Write-Err "env 修复失败"
     exit 1
@@ -29,7 +31,7 @@ Write-Log "===== 第二步: 刷写 boot 分区 =====" -ForegroundColor Yellow
 Write-Host ""
 
 $installMagiskScript = Join-Path $modulesDir "Install-Magisk.ps1"
-& $installMagiskScript -NoReboot
+& $psPath -NoProfile -ExecutionPolicy Bypass -File $installMagiskScript -NoReboot
 if ($LASTEXITCODE -ne 0) {
     Write-Err "boot 刷写失败"
     exit 1

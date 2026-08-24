@@ -22,34 +22,39 @@ function Write-Title {
 }
 
 # ===== CRC32 (zlib 兼容) =====
+# 注意：PowerShell 5.1 中 0xFFFFFFFF / 0xEDB88320 字面量会按 Int32 解析成负数，
+# 且 -bxor 等位运算符会把 uint32 强制转有符号 Int32。
+# 因此全部改用十进制 + Int64 域运算，每步 -band 0xFFFFFFFF 保持 32 位。
 $script:CrcTable = $null
 
 function Initialize-CrcTable {
     if ($null -ne $script:CrcTable) { return }
     $script:CrcTable = New-Object uint32[] 256
     for ($i = 0; $i -lt 256; $i++) {
-        [uint32]$c = $i
+        [int64]$c = $i
         for ($j = 0; $j -lt 8; $j++) {
             if (($c -band 1) -ne 0) {
-                $c = 0xEDB88320 -bxor ($c -shr 1)
+                # 0xEDB88320 = 3988292384
+                $c = (3988292384 -bxor ($c -shr 1)) -band 4294967295
             }
             else {
                 $c = $c -shr 1
             }
         }
-        $script:CrcTable[$i] = $c
+        $script:CrcTable[$i] = [uint32]$c
     }
 }
 
 function Get-CRC32 {
     param([byte[]]$Data)
     Initialize-CrcTable
-    [uint32]$crc = 0xFFFFFFFF
+    # 0xFFFFFFFF = 4294967295
+    [int64]$crc = 4294967295
     foreach ($byte in $Data) {
-        $index = ($crc -bxor $byte) -band 0xFF
-        $crc = $script:CrcTable[$index] -bxor ($crc -shr 8)
+        $index = ($crc -bxor $byte) -band 255
+        $crc = ([int64]$script:CrcTable[$index] -bxor ($crc -shr 8)) -band 4294967295
     }
-    return ($crc -bxor 0xFFFFFFFF)
+    return ([uint32](($crc -bxor 4294967295) -band 4294967295))
 }
 
 # ===== ADB 操作 =====
